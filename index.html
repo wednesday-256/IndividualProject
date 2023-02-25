@@ -47,8 +47,8 @@
     }
 
     .lessonImage {
-      max-width: 190px;
-      max-height: 190px;
+      max-width: 140px;
+      max-height: 140px;
     }
 
     #inputBox:focus {
@@ -62,7 +62,7 @@
     }
 
     .lesson:hover {
-      border: 1px solid #198754;
+      border: 2px solid #198754;
     }
   </style>
   <body>
@@ -260,7 +260,12 @@
         },
         methods: {
           addToCart(lesson) {
-            this.cart.push(lesson);
+            if (Object.keys(this.cart).includes(String(lesson.id))) {
+              console.log("updating", this.cart);
+              this.cart[lesson.id]++;
+            } else {
+              this.cart[lesson.id] = 1;
+            }
           },
           showCheckout() {
             this.showLesson = !this.showLesson; //flips the showLesson value
@@ -281,7 +286,9 @@
             return lesson.availableSpaces - this.cart[lesson.id] > 0;
           },
           numOfSpaces(lesson) {
+            console.log("function called ");
             if (this.cart[lesson.id] === undefined) {
+              console.log("within the undf", lesson);
               return 5;
             }
             return lesson.availableSpaces - this.cart[lesson.id];
@@ -289,7 +296,7 @@
         },
         computed: {
           cartCount() {
-            return Object.values(this.cart).length;
+            return Object.keys(this.cart).length;
           },
           canCheckout() {
             return this.cartCount > 0;
@@ -314,7 +321,9 @@
                 return 0;
               }
             };
-
+            if (this.order === "descending") {
+              return lessonArray.sort(compare).reverse();
+            }
             return lessonArray.sort(compare);
           },
         },
