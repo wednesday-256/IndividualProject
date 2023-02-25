@@ -46,18 +46,23 @@
       padding: 3px 10px;
     }
 
+    .lessonImage {
+      max-width: 190px;
+      max-height: 190px;
+    }
+
     #inputBox:focus {
       background-color: #198754;
       color: ivory;
     }
 
-    .lbBtn {
-      color: yellow;
-      border: 1px solid yellow;
+    .lesson {
+      background-color: ivory;
+      border-radius: 10px;
     }
-    .lbBtn:checked {
-      background-color: yellow;
-      color: black;
+
+    .lesson:hover {
+      border: 1px solid #198754;
     }
   </style>
   <body>
@@ -97,7 +102,7 @@
           />
         </div>
 
-        <div class="toolBox">
+        <div class="toolBox container">
           <!-- sort section  -->
           <div
             class="sortBox d-flex flex-column m-3 p-2 justify-content-between"
@@ -153,16 +158,17 @@
             </div>
             <div class="mt-3 p-2 btn-group" role="group">
               <input
-                type="radio"
                 class="btn-check"
+                type="radio"
                 id="ascending"
+                autocomplete="off"
                 value="ascending"
-                v-model="order"
                 name="order"
                 checked
+                v-model="order"
               />
               <label class="btn-outline-success btn" for="ascending"
-                >Ascending</label
+                ><i class="bi bi-arrow-up me-1"></i>Ascending</label
               >
               <input
                 type="radio"
@@ -170,11 +176,41 @@
                 id="descending"
                 value="descending"
                 v-model="order"
+                autocomplete="off"
                 name="order"
               />
               <label class="btn-outline-success btn" for="descending"
-                >Descending</label
+                ><i class="bi bi-arrow-down me-1"></i>Descending</label
               >
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- result box  -->
+      <div
+        class="resultBox container d-flex justify-content-around align-items-center flex-wrap"
+      >
+        <div class="d-flex m-3 lesson p-3" v-for="lesson in sortedLessons">
+          <div class="d-flex justify-content-center align-items-center">
+            <div class="me-2">
+              <figure>
+                <img class="lessonImage" :src="lesson.image" />
+              </figure>
+            </div>
+            <div class="ms-1 h-90">
+              <p><strong>Subject: </strong>{{lesson.subject}}</p>
+              <p><strong>Location: </strong>{{lesson.location}}</p>
+              <p><strong>Price: </strong>{{lesson.price | formatPrice}}</p>
+              <p><strong>Spaces: </strong>{{numOfSpaces(lesson)}}</p>
+
+              <button
+                v-if="canAddToCart(lesson)"
+                class="btn btn-success"
+                @click="addToCart(lesson)"
+              >
+                <i class="bi bi-plus-lg me-1"></i> Add to cart
+              </button>
             </div>
           </div>
         </div>
@@ -185,7 +221,7 @@
         el: "#app",
         data: {
           sitename: "After School Activities",
-          products: lessons,
+          lessons: lessons,
           searchTerm: "",
           sortAttr: "subject",
           order: "ascending",
@@ -223,19 +259,32 @@
           },
         },
         methods: {
-          addToCart(product) {
-            this.cart.push(product);
+          addToCart(lesson) {
+            this.cart.push(lesson);
           },
           showCheckout() {
-            this.showProduct = !this.showProduct; //flips the showProduct value
+            this.showLesson = !this.showLesson; //flips the showLesson value
           },
-          removeFromCart(product) {
-            this.cart.splice(this.cart.indexOf(product));
+          removeFromCart(lesson) {
+            this.cart.splice(this.cart.indexOf(lesson));
           },
           handleChange() {
             console.log(this.searchTerm, "this is handle event");
             console.log(this.order, " >> this is the order");
+            console.log(this.lessons);
             console.log(this.sortAttr, " >> this is the sortAttr");
+          },
+          canAddToCart(lesson) {
+            if (this.cart[lesson.id] === undefined) {
+              return true;
+            }
+            return lesson.availableSpaces - this.cart[lesson.id] > 0;
+          },
+          numOfSpaces(lesson) {
+            if (this.cart[lesson.id] === undefined) {
+              return 5;
+            }
+            return lesson.availableSpaces - this.cart[lesson.id];
           },
         },
         computed: {
@@ -244,6 +293,29 @@
           },
           canCheckout() {
             return this.cartCount > 0;
+          },
+          sortedLessons() {
+            let lessonArray = this.lessons.slice(0);
+            // check function
+            const check = (a) => {
+              if (typeof a === String) {
+                return a.toLowerCase();
+              } else {
+                return a;
+              }
+            };
+
+            // sort function
+            const compare = (a, b) => {
+              if (check(a[this.sortAttr]) < check(b[this.sortAttr])) {
+                return -1;
+              }
+              if (check(a[this.sortAttr]) < check(b[this.sortAttr])) {
+                return 0;
+              }
+            };
+
+            return lessonArray.sort(compare);
           },
         },
       });
