@@ -25,6 +25,7 @@
     .headerBox {
       background-color: darkgreen;
       padding: 10px;
+      font-weight: bold;
     }
     .sitename {
       color: ivory;
@@ -42,8 +43,9 @@
 
     #inputBox {
       width: 500px;
-      border-radius: 7px;
+      border-radius: 5px;
       padding: 3px 10px;
+      text-align: center;
     }
 
     .lessonImage {
@@ -52,8 +54,7 @@
     }
 
     #inputBox:focus {
-      background-color: #198754;
-      color: ivory;
+      background-color: ivory;
     }
 
     .lesson {
@@ -69,20 +70,20 @@
     <div id="app">
       <!-- header box -->
       <div
-        class="bg-success p-2 d-flex justify-content-between align-items-center justify-content-lg-around mb-3"
+        class="bg-success sticky-top p-2 d-flex justify-content-between align-items-center justify-content-lg-around mb-3"
       >
-        <h4 class="sitename">{{sitename}}</h4>
+        <h5 class="sitename mx-2">{{sitename}}</h5>
 
         <div class="checkoutBox">
           <button
-            class="btn-warning btn position-relative m-1"
-            v-if="canCheckout"
+            class="btn-warning btn position-relative mx-1"
+            v-if="cartCount() > 0"
             type="button"
           >
             Checkout
             <span
               class="badge bg-danger position-absolute top-0 start-100 translate-middle round-pill"
-              >{{cartCount}}</span
+              >{{cartCount()}}</span
             >
           </button>
         </div>
@@ -98,9 +99,9 @@
             type="text"
             placeholder="Enter Search Term"
             v-model="searchTerm"
-            @keyup="handleChange"
           />
         </div>
+        <!-- @keyup="handleChange" -->
 
         <div class="toolBox container">
           <!-- sort section  -->
@@ -148,7 +149,7 @@
                 name="attribute"
                 type="radio"
                 id="available"
-                value="available"
+                value="availableSpace"
                 v-model="sortAttr"
                 autocomplete="off"
               />
@@ -202,7 +203,7 @@
               <p><strong>Subject: </strong>{{lesson.subject}}</p>
               <p><strong>Location: </strong>{{lesson.location}}</p>
               <p><strong>Price: </strong>{{lesson.price | formatPrice}}</p>
-              <p><strong>Spaces: </strong>{{numOfSpaces(lesson)}}</p>
+              <p><strong>Spaces: </strong>{{lesson.availableSpace}}</p>
 
               <button
                 v-if="canAddToCart(lesson)"
@@ -225,9 +226,7 @@
           searchTerm: "",
           sortAttr: "subject",
           order: "ascending",
-          cart: {
-            lout: "3243",
-          },
+          cart: {},
           showProduct: true,
           order: {
             firstName: "",
@@ -260,18 +259,23 @@
         },
         methods: {
           addToCart(lesson) {
+            // add lesson to cart
             if (Object.keys(this.cart).includes(String(lesson.id))) {
-              console.log("updating", this.cart);
+              // console.log("updating", this.cart);
               this.cart[lesson.id]++;
             } else {
               this.cart[lesson.id] = 1;
             }
+
+            //remove space from lesson
+            lesson.availableSpace--;
           },
           showCheckout() {
             this.showLesson = !this.showLesson; //flips the showLesson value
           },
           removeFromCart(lesson) {
             this.cart.splice(this.cart.indexOf(lesson));
+            lesson.availableSpace++;
           },
           handleChange() {
             console.log(this.searchTerm, "this is handle event");
@@ -283,7 +287,7 @@
             if (this.cart[lesson.id] === undefined) {
               return true;
             }
-            return lesson.availableSpaces - this.cart[lesson.id] > 0;
+            return lesson.availableSpace > 0;
           },
           numOfSpaces(lesson) {
             console.log("function called ");
@@ -291,18 +295,41 @@
               console.log("within the undf", lesson);
               return 5;
             }
-            return lesson.availableSpaces - this.cart[lesson.id];
+            return lesson.availableSpace - this.cart[lesson.id];
+          },
+          cartCount() {
+            // console.log(Object.keys(this.cart).length, "  <<cart count ");
+            return Object.keys(this.cart).length;
           },
         },
         computed: {
-          cartCount() {
-            return Object.keys(this.cart).length;
-          },
-          canCheckout() {
-            return this.cartCount > 0;
-          },
           sortedLessons() {
             let lessonArray = this.lessons.slice(0);
+            let newArray = [];
+
+            //checks the searchTerm
+            if (this.searchTerm) {
+              let regSearch = new RegExp(this.searchTerm, "gi");
+
+              //filter function
+              const filterFunction = (lesson) => {
+                let result, lessonText;
+                lessonText =
+                  lesson.subject +
+                  lesson.location +
+                  lesson.price +
+                  lesson.spaces;
+                result = lessonText.search(regSearch);
+                if (result < 0) {
+                  return false;
+                } else {
+                  return true;
+                }
+              };
+
+              lessonArray = lessonArray.filter(filterFunction);
+            }
+
             // check function
             const check = (a) => {
               if (typeof a === String) {
