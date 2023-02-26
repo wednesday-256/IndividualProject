@@ -31,7 +31,6 @@
     .headerBox {
       background-color: darkgreen;
       padding: 10px;
-      font-weight: bold;
     }
     .sitename {
       color: ivory;
@@ -66,6 +65,7 @@
       background-color: ivory;
       border: 2px solid ivory;
       border-radius: 10px;
+      line-height: normal;
     }
 
     .lesson:hover {
@@ -78,16 +78,19 @@
       <div
         class="bg-success sticky-top p-2 d-flex justify-content-between align-items-center justify-content-lg-around mb-3"
       >
-        <h5 class="sitename mx-2">{{sitename}}</h5>
+        <h5 class="sitename mx-2 fw-bolder">{{sitename}}</h5>
 
         <div class="checkoutBox">
           <button
             class="btn-warning btn position-relative mx-1"
             v-if="cartCount() > 0"
             type="button"
+            @click="switchPage"
           >
-            Checkout
+            <i class="bi bi-cart-check-fill me-1"></i>{{showLesson ? "Checkout"
+            : "Activities"}}
             <span
+              v-if="showLesson"
               class="badge bg-danger position-absolute top-0 start-100 translate-middle round-pill"
               >{{cartCount()}}</span
             >
@@ -95,131 +98,171 @@
         </div>
       </div>
 
-      <!-- controls box  -->
-      <div
-        class="container p-4 bg-light controlBox d-flex flex-column flex-lg-row justify-content-around align-items-center"
-      >
-        <div class="searchBox d-flex flex-column">
-          <h6 class="mb-2">Search:</h6>
-          <input
-            id="inputBox"
-            type="text"
-            placeholder="Enter Search Term"
-            v-model="searchTerm"
-          />
+      <div v-if="showLesson">
+        <!-- controls box  -->
+        <div
+          class="container p-4 bg-light controlBox d-flex flex-column flex-lg-row justify-content-around align-items-center"
+        >
+          <div class="searchBox d-flex flex-column">
+            <h6 class="mb-2">Search:</h6>
+            <input
+              id="inputBox"
+              type="text"
+              placeholder="Enter Search Term"
+              v-model="searchTerm"
+            />
+          </div>
+
+          <div class="toolBox container">
+            <!-- sort section  -->
+            <div
+              class="sortBox d-flex flex-column m-3 p-2 justify-content-between"
+            >
+              <h6 class="mb-2">Sort:</h6>
+
+              <div class="btn-group btn-group-sm" role="group">
+                <input
+                  class="btn-check"
+                  type="radio"
+                  name="attribute"
+                  id="subject"
+                  autocomplete="off"
+                  value="subject"
+                  checked
+                  v-model="sortAttr"
+                />
+                <label class="btn btn-outline-success" for="subject"
+                  >Subject</label
+                >
+                <input
+                  class="btn-check"
+                  name="attribute"
+                  type="radio"
+                  id="location"
+                  autocomplete="off"
+                  value="location"
+                  v-model="sortAttr"
+                />
+                <label class="btn btn-outline-success" for="location"
+                  >Location</label
+                >
+                <input
+                  class="btn-check"
+                  name="attribute"
+                  type="radio"
+                  id="price"
+                  value="price"
+                  v-model="sortAttr"
+                  autocomplete="off"
+                />
+                <label class="btn btn-outline-success" for="price">Price</label>
+                <input
+                  class="btn-check"
+                  name="attribute"
+                  type="radio"
+                  id="available"
+                  value="availableSpace"
+                  v-model="sortAttr"
+                  autocomplete="off"
+                />
+                <label class="btn btn-outline-success" for="available"
+                  >Availablity</label
+                >
+              </div>
+              <div class="mt-3 btn-group btn-group-sm" role="group">
+                <input
+                  class="btn-check"
+                  type="radio"
+                  id="ascending"
+                  autocomplete="off"
+                  value="ascending"
+                  name="order"
+                  checked
+                  v-model="order"
+                />
+                <label class="btn-outline-success btn" for="ascending"
+                  ><i class="bi bi-arrow-up me-1"></i>Ascending</label
+                >
+                <input
+                  type="radio"
+                  class="btn-check"
+                  id="descending"
+                  value="descending"
+                  v-model="order"
+                  autocomplete="off"
+                  name="order"
+                />
+                <label class="btn-outline-success btn" for="descending"
+                  ><i class="bi bi-arrow-down me-1"></i>Descending</label
+                >
+              </div>
+            </div>
+          </div>
         </div>
 
-        <div class="toolBox container">
-          <!-- sort section  -->
-          <div
-            class="sortBox d-flex flex-column m-3 p-2 justify-content-between"
-          >
-            <h6 class="mb-2">Sort:</h6>
+        <!-- result box  -->
+        <div
+          class="resultBox container d-flex justify-content-around align-items-center flex-wrap"
+        >
+          <div class="d-flex m-3 lesson p-3" v-for="lesson in sortedLessons">
+            <div class="d-flex justify-content-center align-items-center">
+              <div class="me-2">
+                <figure>
+                  <img class="lessonImage" :src="lesson.image" />
+                </figure>
+              </div>
+              <div class="ms-1 h-90">
+                <p><strong>Subject: </strong>{{lesson.subject}}</p>
+                <p><strong>Location: </strong>{{lesson.location}}</p>
+                <p><strong>Price: </strong>{{lesson.price | formatPrice}}</p>
+                <p><strong>Spaces: </strong>{{lesson.availableSpace}}</p>
 
-            <div class="btn-group" role="group">
-              <input
-                class="btn-check"
-                type="radio"
-                name="attribute"
-                id="subject"
-                autocomplete="off"
-                value="subject"
-                checked
-                v-model="sortAttr"
-              />
-              <label class="btn btn-outline-success" for="subject"
-                >Subject</label
-              >
-              <input
-                class="btn-check"
-                name="attribute"
-                type="radio"
-                id="location"
-                autocomplete="off"
-                value="location"
-                v-model="sortAttr"
-              />
-              <label class="btn btn-outline-success" for="location"
-                >Location</label
-              >
-              <input
-                class="btn-check"
-                name="attribute"
-                type="radio"
-                id="price"
-                value="price"
-                v-model="sortAttr"
-                autocomplete="off"
-              />
-              <label class="btn btn-outline-success" for="price">Price</label>
-              <input
-                class="btn-check"
-                name="attribute"
-                type="radio"
-                id="available"
-                value="availableSpace"
-                v-model="sortAttr"
-                autocomplete="off"
-              />
-              <label class="btn btn-outline-success" for="available"
-                >Availablity</label
-              >
-            </div>
-            <div class="mt-3 p-2 btn-group" role="group">
-              <input
-                class="btn-check"
-                type="radio"
-                id="ascending"
-                autocomplete="off"
-                value="ascending"
-                name="order"
-                checked
-                v-model="order"
-              />
-              <label class="btn-outline-success btn" for="ascending"
-                ><i class="bi bi-arrow-up me-1"></i>Ascending</label
-              >
-              <input
-                type="radio"
-                class="btn-check"
-                id="descending"
-                value="descending"
-                v-model="order"
-                autocomplete="off"
-                name="order"
-              />
-              <label class="btn-outline-success btn" for="descending"
-                ><i class="bi bi-arrow-down me-1"></i>Descending</label
-              >
+                <button
+                  v-if="canAddToCart(lesson)"
+                  class="btn btn-success btn-sm"
+                  @click="addToCart(lesson)"
+                >
+                  <i class="bi bi-plus-lg me-1"></i> Add To cart
+                </button>
+                <button v-else type="button" disabled class="btn btn-success">
+                  <i class="bi bi-plus-lg me-1"></i> Add To Cart
+                </button>
+              </div>
             </div>
           </div>
         </div>
       </div>
 
-      <!-- result box  -->
-      <div
-        class="resultBox container d-flex justify-content-around align-items-center flex-wrap"
-      >
-        <div class="d-flex m-3 lesson p-3" v-for="lesson in sortedLessons">
-          <div class="d-flex justify-content-center align-items-center">
-            <div class="me-2">
-              <figure>
-                <img class="lessonImage" :src="lesson.image" />
-              </figure>
-            </div>
-            <div class="ms-1 h-90">
-              <p><strong>Subject: </strong>{{lesson.subject}}</p>
-              <p><strong>Location: </strong>{{lesson.location}}</p>
-              <p><strong>Price: </strong>{{lesson.price | formatPrice}}</p>
-              <p><strong>Spaces: </strong>{{lesson.availableSpace}}</p>
+      <div v-else>
+        <!-- heading for cart page -->
+        <h4 class="text-center fw-bolder text-uppercase text-warning">
+          Cart List
+        </h4>
 
-              <button
-                v-if="canAddToCart(lesson)"
-                class="btn btn-success"
-                @click="addToCart(lesson)"
-              >
-                <i class="bi bi-plus-lg me-1"></i> Add to cart
-              </button>
+        <!-- shopping cart box -->
+        <div
+          class="resultBox container d-flex justify-content-around align-items-center flex-wrap"
+        >
+          <div class="d-flex m-3 lesson p-3" v-for="lesson in cartLessons">
+            <div class="d-flex justify-content-center align-items-center">
+              <div class="me-2">
+                <figure>
+                  <img class="lessonImage" :src="lesson.image" />
+                </figure>
+              </div>
+              <div class="ms-1 h-90">
+                <p><strong>Subject: </strong>{{lesson.subject}}</p>
+                <p><strong>Location: </strong>{{lesson.location}}</p>
+                <p><strong>Price: </strong>{{lesson.price | formatPrice}}</p>
+                <p><strong>Spaces: </strong>{{lesson.space}}</p>
+
+                <button
+                  class="btn btn-success btn-sm"
+                  @click="removeFromCart(lesson)"
+                >
+                  <i class="bi bi-trash3-fill me-1"></i> Remove
+                </button>
+              </div>
             </div>
           </div>
         </div>
@@ -273,7 +316,7 @@
             price: "",
             space: "",
           },
-          showProduct: true,
+          showLesson: true,
           order: {
             firstName: "",
             lastName: "",
@@ -322,6 +365,7 @@
             //notify the user of the add to cart operation
             this.handleNotify(lesson, 1);
           },
+          //handle notification
           handleNotify(lesson, type) {
             let classAttr = "rounded me-2 bi bi-bell-fill text-";
 
@@ -349,7 +393,7 @@
             toast._config.delay = 3000;
             toast.show();
           },
-          showCheckout() {
+          switchPage() {
             this.showLesson = !this.showLesson; //flips the showLesson value
           },
           removeFromCart(lesson) {
@@ -423,6 +467,26 @@
               return lessonArray.sort(compare).reverse();
             }
             return lessonArray.sort(compare);
+          },
+          cartLessons() {
+            let cartArray = [];
+
+            //updates the cart array with information about the activity
+            const updateArray = (id) => {
+              let lessonObj = {},
+                cartObj;
+              cartObj = lessons.find((obj) => obj.id == id);
+              lessonObj.subject = cartObj.subject;
+              lessonObj.location = cartObj.location;
+              lessonObj.price = cartObj.price;
+              lessonObj.image = cartObj.image;
+              lessonObj.space = this.cart[id];
+
+              //adds object to the cartArray
+              cartArray.push(lessonObj);
+            };
+            Object.keys(this.cart).forEach(updateArray);
+            return cartArray;
           },
         },
       });
