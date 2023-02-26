@@ -39,7 +39,9 @@
       border-radius: 7px;
     }
     .toast-body {
+      max-height: 150px;
       line-height: normal;
+      background-color: ivory;
     }
     #inputBox {
       width: 500px;
@@ -82,7 +84,7 @@
 
         <div class="checkoutBox">
           <button
-            class="btn-warning btn position-relative mx-1"
+            class="btn-warning btn position-relative mx-2"
             v-if="cartCount() > 0"
             type="button"
             @click="switchPage"
@@ -204,7 +206,7 @@
         <div
           class="resultBox container d-flex justify-content-around align-items-center flex-wrap"
         >
-          <div class="d-flex m-3 lesson p-3" v-for="lesson in sortedLessons">
+          <div class="d-flex m-2 lesson p-3" v-for="lesson in sortedLessons">
             <div class="d-flex justify-content-center align-items-center">
               <div class="me-2">
                 <figure>
@@ -224,8 +226,13 @@
                 >
                   <i class="bi bi-plus-lg me-1"></i> Add To cart
                 </button>
-                <button v-else type="button" disabled class="btn btn-success">
-                  <i class="bi bi-plus-lg me-1"></i> Add To Cart
+                <button
+                  v-else
+                  type="button"
+                  disabled
+                  class="btn btn-success btn-sm"
+                >
+                  <i class="bi bi-exclamation-circle-fill me-1"></i> Add To Cart
                 </button>
               </div>
             </div>
@@ -234,6 +241,52 @@
       </div>
 
       <div v-else>
+        <div class="bg-light p-3 m-2 mb-4 sticky-top">
+          <!-- checkout box  -->
+          <h4 class="m-2 text-warning fw-bolder text-uppercase">Check Out:</h4>
+          <!-- checkout errors -->
+          <ul class="mb-3 text-warning fs-6 fw-lighter">
+            <li><small>Full Name field accepts only letters.</small></li>
+            <li><small>Phone number field accepts only numbers.</small></li>
+          </ul>
+          <div class="input-group mb-3">
+            <span class="input-group-text bg-success text-light" id="name"
+              ><i class="bi me-1 bi-person-fill"></i>Full Name:
+            </span>
+            <input
+              type="text"
+              class="form-control"
+              placeholder="Enter Full Name Here"
+              v-model="orderData.name"
+            />
+            <span class="input-group-text bg-success text-light"
+              ><i class="bi me-2 bi-telephone-fill"></i>Phone Number:
+            </span>
+            <input
+              class="form-control"
+              placeholder="Enter Phone Number Here."
+              aria-label="phone number"
+              v-model="orderData.phoneNumber"
+            />
+            <button
+              type="button"
+              class="btn-warning btn btn-sm"
+              v-if="isValid"
+              @click="submitOrder"
+            >
+              <i class="bi me-1 bi-check-circle-fill"></i> {{checkMsg}}
+            </button>
+            <button
+              type="button"
+              disabled
+              class="btn-warning btn btn-sm"
+              v-else
+            >
+              <i class="bi me-1 bi-exclamation-circle-fill"></i> Checkout
+            </button>
+          </div>
+        </div>
+
         <!-- heading for cart page -->
         <h4 class="text-center fw-bolder text-uppercase text-warning">
           Cart List
@@ -243,7 +296,7 @@
         <div
           class="resultBox container d-flex justify-content-around align-items-center flex-wrap"
         >
-          <div class="d-flex m-3 lesson p-3" v-for="lesson in cartLessons">
+          <div class="d-flex m-2 lesson p-3" v-for="lesson in getCartLessons()">
             <div class="d-flex justify-content-center align-items-center">
               <div class="me-2">
                 <figure>
@@ -307,6 +360,7 @@
           sortAttr: "subject",
           order: "ascending",
           cart: {},
+          checkMsg: "Checkout",
           notifyMsg: {
             header: "",
             type: "",
@@ -317,19 +371,10 @@
             space: "",
           },
           showLesson: true,
-          order: {
+          orderData: {
             firstName: "",
             lastName: "",
-            address: "",
-            city: "",
-            zip: "",
-            state: "",
-            method: "Home Address",
-            business: "Business Address",
-            home: "Home Address",
-            gift: "Do Not Send As a Gift",
-            sendGift: "Send As a Gift",
-            dontSendGift: "Do Not Send As a Gift",
+            phoneNumber: "",
           },
         },
         filters: {
@@ -386,19 +431,30 @@
             this.notifyMsg.subject = lesson.subject;
             this.notifyMsg.location = lesson.location;
             this.notifyMsg.price = lesson.price;
-            this.notifyMsg.space = this.cart[lesson.id];
+            this.notifyMsg.space =
+              this.cart[lesson.id] || lesson.availableSpace;
 
             //create and show the notification
             let toast = bootstrap.Toast.getOrCreateInstance(this.$refs.toast);
             toast._config.delay = 3000;
             toast.show();
           },
+          submitOrder() {
+            this.checkMsg = "Order Submitted!";
+          },
           switchPage() {
             this.showLesson = !this.showLesson; //flips the showLesson value
           },
-          removeFromCart(lesson) {
-            this.cart.splice(this.cart.indexOf(lesson));
-            lesson.availableSpace++;
+          removeFromCart(c_lesson) {
+            // console.log(c_lesson, "inside remove from cart");
+            // loops through the lesson list and updates it
+            lessons.forEach((lesson) => {
+              if (lesson.id == c_lesson.id) {
+                lesson.availableSpace = 5;
+                delete this.cart[lesson.id];
+                this.handleNotify(lesson, 2);
+              }
+            });
           },
           canAddToCart(lesson) {
             if (this.cart[lesson.id] === undefined) {
@@ -416,8 +472,45 @@
             // console.log(Object.keys(this.cart).length, "  <<cart count ");
             return Object.keys(this.cart).length;
           },
+          getCartLessons() {
+            let cartArray = [];
+
+            //updates the cart array with information about the activity
+            const updateArray = (id) => {
+              let lessonObj = { id: id },
+                cartObj;
+
+              cartObj = lessons.find((obj) => obj.id == id);
+              lessonObj.subject = cartObj.subject;
+              lessonObj.location = cartObj.location;
+              lessonObj.price = cartObj.price;
+              lessonObj.image = cartObj.image;
+              lessonObj.space = this.cart[id];
+
+              //adds object to the cartArray
+              cartArray.push(lessonObj);
+            };
+            Object.keys(this.cart).forEach(updateArray);
+            return cartArray;
+          },
         },
         computed: {
+          isValid() {
+            if (
+              this.orderData.phoneNumber === "" ||
+              this.orderData.name === ""
+            ) {
+              return false;
+            }
+            if (
+              this.orderData.phoneNumber.search(/[a-z]/gi) > -1 ||
+              this.orderData.name.search(/[0-9]/g) > -1
+            ) {
+              return false;
+            } else {
+              return true;
+            }
+          },
           sortedLessons() {
             let lessonArray = this.lessons.slice(0);
             let newArray = [];
@@ -467,26 +560,6 @@
               return lessonArray.sort(compare).reverse();
             }
             return lessonArray.sort(compare);
-          },
-          cartLessons() {
-            let cartArray = [];
-
-            //updates the cart array with information about the activity
-            const updateArray = (id) => {
-              let lessonObj = {},
-                cartObj;
-              cartObj = lessons.find((obj) => obj.id == id);
-              lessonObj.subject = cartObj.subject;
-              lessonObj.location = cartObj.location;
-              lessonObj.price = cartObj.price;
-              lessonObj.image = cartObj.image;
-              lessonObj.space = this.cart[id];
-
-              //adds object to the cartArray
-              cartArray.push(lessonObj);
-            };
-            Object.keys(this.cart).forEach(updateArray);
-            return cartArray;
           },
         },
       });
