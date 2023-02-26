@@ -3,6 +3,12 @@
   <head>
     <meta charset="UTF-8" />
     <script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
+    <script
+      src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js"
+      integrity="sha384-MrcW6ZMFYlzcLA8Nl+NtUVF0sA7MsXsP1UyJoMp4YLEuNSfAP+JcXn/tWtIaxVXM"
+      crossorigin="anonymous"
+    ></script>
+
     <link
       href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css"
       rel="stylesheet"
@@ -30,17 +36,12 @@
     .sitename {
       color: ivory;
     }
-    .prBtn {
-      background-color: yellow;
-    }
-    .prBtn:hover {
-      background-color: ivory;
-    }
-
     .controlBox {
       border-radius: 7px;
     }
-
+    .toast-body {
+      line-height: normal;
+    }
     #inputBox {
       width: 500px;
       border-radius: 5px;
@@ -51,6 +52,10 @@
     .lessonImage {
       max-width: 140px;
       max-height: 140px;
+      transition: transform ease-in 1s;
+    }
+    .lessonImage:hover {
+      transform: scale(1.05);
     }
 
     #inputBox:focus {
@@ -59,6 +64,7 @@
 
     .lesson {
       background-color: ivory;
+      border: 2px solid ivory;
       border-radius: 10px;
     }
 
@@ -93,7 +99,8 @@
       <div
         class="container p-4 bg-light controlBox d-flex flex-column flex-lg-row justify-content-around align-items-center"
       >
-        <div class="searchBox d-flex">
+        <div class="searchBox d-flex flex-column">
+          <h6 class="mb-2">Search:</h6>
           <input
             id="inputBox"
             type="text"
@@ -101,13 +108,14 @@
             v-model="searchTerm"
           />
         </div>
-        <!-- @keyup="handleChange" -->
 
         <div class="toolBox container">
           <!-- sort section  -->
           <div
             class="sortBox d-flex flex-column m-3 p-2 justify-content-between"
           >
+            <h6 class="mb-2">Sort:</h6>
+
             <div class="btn-group" role="group">
               <input
                 class="btn-check"
@@ -216,6 +224,35 @@
           </div>
         </div>
       </div>
+
+      <!-- alerts box  -->
+      <div class="position-fixed bottom-0 start-0 p-3" style="z-index: 11">
+        <div
+          id="liveToast"
+          class="toast hide"
+          role="alert"
+          aria-live="assertive"
+          aria-atomic="true"
+          ref="toast"
+        >
+          <div class="toast-header">
+            <i :class="notifyMsg.classAttr"></i>
+            <strong class="me-auto">{{notifyMsg.header}}</strong>
+            <button
+              type="button"
+              class="btn-close"
+              data-bs-dismiss="toast"
+              aria-label="Close"
+            ></button>
+          </div>
+          <div class="toast-body">
+            <p><strong>Subject: </strong>{{notifyMsg.subject}}</p>
+            <p><strong>Location: </strong>{{notifyMsg.location}}</p>
+            <p><strong>Price: </strong>{{notifyMsg.price | formatPrice}}</p>
+            <p><strong>Spaces: </strong>{{notifyMsg.space}}</p>
+          </div>
+        </div>
+      </div>
     </div>
     <script type="text/javascript">
       const webApp = new Vue({
@@ -227,6 +264,15 @@
           sortAttr: "subject",
           order: "ascending",
           cart: {},
+          notifyMsg: {
+            header: "",
+            type: "",
+            classAttr: "",
+            subject: "",
+            location: "",
+            price: "",
+            space: "",
+          },
           showProduct: true,
           order: {
             firstName: "",
@@ -246,6 +292,9 @@
         filters: {
           // formats price
           formatPrice(price) {
+            if (!price) {
+              return "";
+            }
             if (!parseInt(price)) {
               throw Error("expects int or float value"); //throws error if the price valu is not an integer
             }
@@ -269,6 +318,36 @@
 
             //remove space from lesson
             lesson.availableSpace--;
+
+            //notify the user of the add to cart operation
+            this.handleNotify(lesson, 1);
+          },
+          handleNotify(lesson, type) {
+            let classAttr = "rounded me-2 bi bi-bell-fill text-";
+
+            //changes the bell color depending on the type of notification
+            switch (type) {
+              case 1:
+                classAttr += "success";
+                this.notifyMsg.header = "Added To Cart!";
+                this.notifyMsg.type = 1;
+                break;
+              case 2:
+                classAttr += "danger";
+                this.notifyMsg.header = "Removed From Cart!";
+                this.notifyMsg.type = 2;
+                break;
+            }
+            this.notifyMsg.classAttr = classAttr;
+            this.notifyMsg.subject = lesson.subject;
+            this.notifyMsg.location = lesson.location;
+            this.notifyMsg.price = lesson.price;
+            this.notifyMsg.space = this.cart[lesson.id];
+
+            //create and show the notification
+            let toast = bootstrap.Toast.getOrCreateInstance(this.$refs.toast);
+            toast._config.delay = 3000;
+            toast.show();
           },
           showCheckout() {
             this.showLesson = !this.showLesson; //flips the showLesson value
@@ -277,12 +356,6 @@
             this.cart.splice(this.cart.indexOf(lesson));
             lesson.availableSpace++;
           },
-          handleChange() {
-            console.log(this.searchTerm, "this is handle event");
-            console.log(this.order, " >> this is the order");
-            console.log(this.lessons);
-            console.log(this.sortAttr, " >> this is the sortAttr");
-          },
           canAddToCart(lesson) {
             if (this.cart[lesson.id] === undefined) {
               return true;
@@ -290,9 +363,7 @@
             return lesson.availableSpace > 0;
           },
           numOfSpaces(lesson) {
-            console.log("function called ");
             if (this.cart[lesson.id] === undefined) {
-              console.log("within the undf", lesson);
               return 5;
             }
             return lesson.availableSpace - this.cart[lesson.id];
