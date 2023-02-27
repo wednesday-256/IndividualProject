@@ -68,6 +68,16 @@
       border: 2px solid ivory;
       border-radius: 10px;
       line-height: normal;
+      animation-name: slideIn;
+      animation-duration: 0.4s;
+      animation-timing-function: ease-in;
+    }
+
+    @keyframes slideIn {
+      0% {
+        transform: translate(90px, 0px);
+        background-color: white;
+      }
     }
 
     .lesson:hover {
@@ -241,8 +251,8 @@
       </div>
 
       <div v-else>
-        <div class="bg-light p-3 m-2 mb-4 sticky-top">
-          <!-- checkout box  -->
+        <!-- checkout box  -->
+        <div class="bg-light p-3 m-2 mx-lg-5 px-lg-5 mb-4 sticky-top">
           <h4 class="m-2 text-warning fw-bolder text-uppercase">Check Out:</h4>
           <!-- checkout errors -->
           <ul class="mb-3 text-warning fs-6 fw-lighter">
