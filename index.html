@@ -85,7 +85,7 @@
         <div class="checkoutBox">
           <button
             class="btn-warning btn position-relative mx-2"
-            v-if="cartCount() > 0"
+            v-if="cartCount() > 0 || !showLesson"
             type="button"
             @click="switchPage"
           >
