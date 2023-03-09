@@ -28,10 +28,7 @@
     * {
       font-family: arial;
     }
-    .headerBox {
-      background-color: darkgreen;
-      padding: 10px;
-    }
+
     .sitename {
       color: ivory;
     }
@@ -43,24 +40,27 @@
       line-height: normal;
       background-color: ivory;
     }
-    #inputBox {
+    #searchBox {
       width: 500px;
-      border-radius: 5px;
-      padding: 3px 10px;
+      border-radius: 15px;
+      border: 2px solid #198754;
+      color: #198754;
+      padding: 3px 15px;
       text-align: center;
+    }
+
+    #searchBox:focus {
+      background-color: ivory;
+      border: 2px solid ivory;
     }
 
     .lessonImage {
       max-width: 140px;
       max-height: 140px;
-      transition: transform ease-in 1s;
+      transition: transform ease-in 0.6s;
     }
     .lessonImage:hover {
-      transform: scale(1.05);
-    }
-
-    #inputBox:focus {
-      background-color: ivory;
+      transform: scale(1.09) rotate(-3deg);
     }
 
     .lesson {
@@ -69,7 +69,7 @@
       border-radius: 10px;
       line-height: normal;
       animation-name: slideIn;
-      animation-duration: 0.4s;
+      animation-duration: 0.6s;
       animation-timing-function: ease-in;
     }
 
@@ -88,13 +88,13 @@
     <div id="app">
       <!-- header box -->
       <div
-        class="bg-success sticky-top p-2 d-flex justify-content-between align-items-center justify-content-lg-around mb-3"
+        class="bg-success bg-gradient sticky-top p-2 d-flex justify-content-between align-items-center justify-content-lg-around mb-3"
       >
         <h5 class="sitename mx-2 fw-bolder">{{sitename}}</h5>
 
         <div class="checkoutBox">
           <button
-            class="btn-warning btn position-relative mx-2"
+            class="btn-warning btn bg-gradient position-relative mx-2"
             v-if="cartCount() > 0 || !showLesson"
             type="button"
             @click="switchPage"
@@ -118,7 +118,7 @@
           <div class="searchBox d-flex flex-column">
             <h6 class="mb-2">Search:</h6>
             <input
-              id="inputBox"
+              id="searchBox"
               type="text"
               placeholder="Enter Search Term"
               v-model="searchTerm"
@@ -231,7 +231,7 @@
 
                 <button
                   v-if="canAddToCart(lesson)"
-                  class="btn btn-success btn-sm"
+                  class="btn btn-success btn-sm bg-gradient"
                   @click="addToCart(lesson)"
                 >
                   <i class="bi bi-plus-lg me-1"></i> Add To cart
@@ -280,7 +280,7 @@
             />
             <button
               type="button"
-              class="btn-warning btn btn-sm"
+              class="btn-warning btn btn-sm bg-gradient"
               v-if="isValid"
               @click="submitOrder"
             >
