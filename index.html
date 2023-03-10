@@ -83,6 +83,69 @@
     .lesson:hover {
       border: 2px solid #198754;
     }
+
+    .circle1 {
+      width: 20px;
+      height: 20px;
+      border-radius: 50%;
+      background-color: #ffca2c;
+      top: 60%;
+      left: 17px;
+      position: fixed;
+      z-index: -6;
+      animation-name: circle1;
+      animation-duration: 20s;
+      animation-iteration-count: infinite;
+      animation-timing-function: ease-in-out;
+    }
+
+    .circle2 {
+      width: 50px;
+      height: 50px;
+      position: fixed;
+      border-radius: 50%;
+      background-color: #198754;
+      top: 70%;
+      z-index: 7;
+      left: 17px;
+      position: fixed;
+      opacity: 0.8;
+      z-index: -7;
+      animation-name: circle2;
+      animation-duration: 40s;
+      animation-iteration-count: infinite;
+      animation-timing-function: ease-in-out;
+      animation-direction: reverse;
+    }
+
+    @keyframes circle1 {
+      66% {
+        transform: translateY(95%);
+        background-color: ivory;
+      }
+      80% {
+        transform: scale(0.7);
+      }
+
+      33% {
+        transform: translateY(-95%);
+        background-color: #198754;
+      }
+    }
+    @keyframes circle2 {
+      66% {
+        transform: translateY(-90%);
+        background-color: ivory;
+      }
+      80% {
+        transform: scale(0.7);
+      }
+
+      33% {
+        transform: translateY(90%);
+        background-color: #ffca2c;
+      }
+    }
   </style>
   <body>
     <div id="app">
@@ -358,6 +421,12 @@
             <p><strong>Spaces: </strong>{{notifyMsg.space}}</p>
           </div>
         </div>
+      </div>
+
+      <!-- cirlces box  -->
+      <div class="position-relative">
+        <div class="circle1"></div>
+        <div class="circle2"></div>
       </div>
     </div>
     <script type="text/javascript">
