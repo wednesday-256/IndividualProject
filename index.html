@@ -323,7 +323,7 @@
             <li><small>Phone number field accepts only numbers.</small></li>
           </ul>
           <div class="input-group mb-3">
-            <span class="input-group-text bg-success text-light" id="name"
+            <span class="input-group-text bg-warning text-light" id="name"
               ><i class="bi me-1 bi-person-fill"></i>Full Name:
             </span>
             <input
@@ -332,7 +332,7 @@
               placeholder="Enter Full Name Here"
               v-model="orderData.name"
             />
-            <span class="input-group-text bg-success text-light"
+            <span class="input-group-text bg-warning text-light"
               ><i class="bi me-2 bi-telephone-fill"></i>Phone Number:
             </span>
             <input
@@ -343,7 +343,7 @@
             />
             <button
               type="button"
-              class="btn-warning btn btn-sm bg-gradient"
+              class="btn-success btn btn-sm bg-gradient"
               v-if="isValid"
               @click="submitOrder"
             >
@@ -355,7 +355,7 @@
               class="btn-warning btn btn-sm"
               v-else
             >
-              <i class="bi me-1 bi-exclamation-circle-fill"></i> Checkout
+              <i class="bi me-1 bi-exclamation-circle-fill"></i>
             </button>
           </div>
         </div>
